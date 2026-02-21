@@ -1,14 +1,15 @@
 from flask import Flask, request, make_response
+from flask_cors import CORS  # 
 from fpdf import FPDF
 import datetime
 import os
 import requests
 
 app = Flask(__name__)
+CORS(app)  
 
 # --- GÜVENLİK AYARLARI ---
-# Not: Bunları Render Settings -> Environment Variables kısmına eklemen daha profesyonel olur 
-# ama şimdilik kodun içinde kalabilir.
+
 GOOGLE_API_KEY = "AIzaSyDJloNd7fIl3juCW3oiVsoetmudjJq0_vo"
 SEARCH_ENGINE_ID = "c64d73fae86564e88"
 
@@ -150,3 +151,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     # host='0.0.0.0' Render'ın trafiği yakalaması için ŞARTTIR.
     app.run(host='0.0.0.0', port=port)
+
