@@ -2,3 +2,4 @@ flask
 fpdf
 requests
 gunicorn
+flask-cors
