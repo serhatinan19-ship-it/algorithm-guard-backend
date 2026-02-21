@@ -9,9 +9,9 @@ class PDF(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 15)
         self.set_text_color(0, 51, 102)
-        self.cell(0, 10, 'ALGORITHM GUARD', ln=True, align='C')
+        self.cell(0, 10, 'ALGORITHM GUARD', ln=1, align='C')
         self.set_font('Arial', '', 9)
-        self.cell(0, 5, 'PROTECT YOUR CREATIVE WORK', ln=True, align='C')
+        self.cell(0, 5, 'PROTECT YOUR CREATIVE WORK', ln=1, align='C')
         self.ln(10)
 
     def footer(self):
@@ -24,52 +24,56 @@ class PDF(FPDF):
 def handle_scan():
     try:
         data = request.get_json()
-        video_link = str(data.get('link', 'Unknown'))
-        customer_email = str(data.get('email', 'N/A'))
+        video_link = str(data.get('link', 'N/A'))
         
         pdf = PDF()
         pdf.add_page()
         
-        # 1. Başlık
-        pdf.set_font('Arial', 'B', 20)
+        # 1. Ana Başlık
+        pdf.set_font('Arial', 'B', 22)
         pdf.set_text_color(33, 37, 41)
-        pdf.cell(0, 20, 'AI Scan Report', ln=True, align='C')
+        pdf.cell(0, 20, 'AI Scan Report', ln=1, align='C')
         
-        # 2. Scan Details
+        # 2. Detaylar
         pdf.set_font('Arial', 'B', 12)
         pdf.set_text_color(0, 51, 102)
-        pdf.cell(0, 10, 'Scan Details', ln=True)
+        pdf.cell(0, 10, 'Scan Details:', ln=1)
         pdf.set_font('Arial', '', 10)
         pdf.set_text_color(0)
-        pdf.cell(0, 7, f'Date: {datetime.datetime.now().strftime("%Y-%m-%d")}', ln=True)
-        pdf.cell(0, 7, f'Link: {video_link[:50]}...', ln=True) # Uzun linkleri keser
+        pdf.cell(0, 7, f'Date: {datetime.date.today()}', ln=1)
+        pdf.cell(0, 7, f'Target: {video_link[:60]}', ln=1)
         pdf.ln(10)
         
-        # 3. Kırmızı Uyarı Kutusu (Basitleştirilmiş)
-        pdf.set_fill_color(255, 200, 200)
-        pdf.set_font('Arial', 'B', 12)
-        pdf.set_text_color(200, 0, 0)
-        pdf.cell(0, 10, 'IMMEDIATE ACTION REQUIRED!', ln=1, align='C', fill=True)
+        # 3. Özet ve Uyarı (Kutu yerine renkli metin)
+        pdf.set_font('Arial', 'B', 14)
+        pdf.set_text_color(200, 0, 0) # Kırmızı
+        pdf.cell(0, 10, 'IMMEDIATE ACTION REQUIRED!', ln=1, align='C')
         
-        pdf.set_font('Arial', '', 10)
+        pdf.set_font('Arial', '', 11)
         pdf.set_text_color(0)
-        warning_msg = "AI detected 3-5 unauthorized re-uploads. Upgrade to Full Report for $29."
-        pdf.multi_cell(0, 10, warning_msg, align='C')
-        
-        # 4. Buton Alanı
+        msg = ("Our AI detected 3-5 unauthorized re-uploads. To view detailed links, "
+               "profiles, and start takedown notices, upgrade to the Full Report.")
+        pdf.multi_cell(0, 7, msg, align='C')
         pdf.ln(10)
-        pdf.set_fill_color(0, 123, 255)
-        pdf.set_text_color(255, 255, 255)
-        pdf.set_font('Arial', 'B', 12)
-        # Ödeme Linkini buraya ekle
-        pdf.cell(60, 12, 'UPGRADE NOW', ln=True, align='C', fill=True, link="https://buy.stripe.com/test")
+        
+        # 4. Ödeme Linki (Daha güvenli yöntem)
+        pdf.set_font('Arial', 'B', 14)
+        pdf.set_text_color(0, 0, 255) # Mavi
+        pdf.cell(0, 10, 'CLICK HERE TO UPGRADE FOR $29', ln=1, align='C', link="https://buy.stripe.com/test")
 
-        response = make_response(pdf.output(dest='S').encode('latin-1', errors='ignore'))
+        # PDF çıktısını al ve encode et
+        out = pdf.output(dest='S')
+        if isinstance(out, str):
+            out = out.encode('latin-1', errors='ignore')
+            
+        response = make_response(out)
         response.headers.set('Content-Type', 'application/pdf')
-        response.headers.set('Content-Disposition', 'attachment', filename='Report.pdf')
+        response.headers.set('Content-Disposition', 'attachment', filename='AI_Report.pdf')
         return response
+
     except Exception as e:
-        return str(e), 500
+        print(f"Hata oluştu: {str(e)}")
+        return "Internal Server Error", 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
