@@ -1,4 +1,0 @@
-flask
-requests
-fpdf
-google-api-python-client
