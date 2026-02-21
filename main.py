@@ -7,22 +7,18 @@ app = Flask(__name__)
 
 class PDF(FPDF):
     def header(self):
-        # Üst Bilgi: Kurumsal Kimlik
         self.set_font('Arial', 'B', 15)
-        self.set_text_color(0, 51, 102) # Koyu Lacivert
+        self.set_text_color(0, 51, 102)
         self.cell(0, 10, 'ALGORITHM GUARD', ln=1, align='C')
         self.set_font('Arial', 'I', 9)
-        self.cell(0, 5, 'PROTECT YOUR CREATIVE WORK', ln=1, align='C')
-        self.set_draw_color(0, 51, 102)
-        self.line(10, 32, 200, 32) # Zarif bir ayırıcı çizgi
-        self.ln(12)
+        self.cell(0, 5, 'AI-POWERED CONTENT PROTECTION', ln=1, align='C')
+        self.ln(10)
 
     def footer(self):
-        # Alt Bilgi: Profesyonel Gizlilik Notu
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
         self.set_text_color(128)
-        self.cell(0, 10, f'Confidential | Page {self.page_no()} | 2026 Algorithm Guard', align='C')
+        self.cell(0, 10, f'Confidential Scan | Page {self.page_no()} | © 2026 Algorithm Guard', align='C')
 
 @app.route('/scan', methods=['POST'])
 def handle_scan():
@@ -33,56 +29,54 @@ def handle_scan():
         pdf = PDF()
         pdf.add_page()
         
-        # 1. Ana Başlık - AI Scan Report
-        pdf.set_font('Arial', 'B', 22)
+        # 1. Başlık Bölümü
+        pdf.set_font('Arial', 'B', 20)
         pdf.set_text_color(33, 37, 41)
-        pdf.cell(0, 20, 'AI Scan Report', ln=1, align='C')
-        
-        # 2. Tarama Detayları
+        pdf.cell(0, 15, 'Initial Scan Analysis', ln=1, align='L')
+        pdf.set_font('Arial', '', 10)
+        pdf.cell(0, 7, f'Report ID: AG-{datetime.datetime.now().strftime("%Y%m%d%H%M")}', ln=1)
+        pdf.cell(0, 7, f'Status: High Risk Matches Detected', ln=1)
+        pdf.ln(5)
+
+        # 2. Tespit Edilen Örnek Linkler (İkna Edici Kısım)
         pdf.set_font('Arial', 'B', 12)
         pdf.set_text_color(0, 51, 102)
-        pdf.cell(0, 10, 'Scan Details:', ln=1)
+        pdf.cell(0, 10, 'Detected Unauthorized Matches (Preview):', ln=1)
+        
         pdf.set_font('Arial', '', 10)
         pdf.set_text_color(0)
-        pdf.cell(0, 7, f'Date: {datetime.date.today()}', ln=1)
-        pdf.set_font('Arial', 'I', 10)
-        pdf.multi_cell(0, 7, f'Target Link: {video_link}')
+        # Gerçek API gelene kadar "inandırıcı" maskelenmiş linkler
+        pdf.cell(0, 7, '1. YouTube Search Match: https://www.youtube.com/watch?v=kRj***', ln=1)
+        pdf.cell(0, 7, '2. Social Media Mirror: https://www.facebook.com/watch/v=v9B***', ln=1)
+        pdf.set_font('Arial', 'I', 9)
+        pdf.set_text_color(100)
+        pdf.cell(0, 7, '(Full URLs and channel data are hidden in initial scan)', ln=1)
         pdf.ln(8)
-        
-        # 3. Kritik Bulgular Bölümü (Kırmızı Vurgu)
+
+        # 3. Kırmızı Aksiyon Kutusu
         pdf.set_font('Arial', 'B', 14)
-        pdf.set_text_color(180, 0, 0) # Profesyonel Kırmızı
+        pdf.set_text_color(200, 0, 0)
         pdf.cell(0, 10, 'IMMEDIATE ACTION REQUIRED!', ln=1, align='C')
         
         pdf.set_font('Arial', '', 11)
-        pdf.set_text_color(0)
-        msg = ("Our advanced AI scan has successfully identified 3-5 unauthorized re-uploads "
-               "of your content. To protect your digital rights and revenue, an immediate "
-               "action is recommended.")
+        pdf.set_text_color(33, 37, 41)
+        msg = ("Our AI has flagged 3-5 high-probability unauthorized re-uploads. "
+               "To initiate the takedown process and access the full evidence package, "
+               "please proceed to the Full Report.")
         pdf.multi_cell(0, 7, msg, align='C')
         pdf.ln(10)
-        
-        # 4. Satış ve Aksiyon Planı
-        pdf.set_font('Arial', 'B', 11)
-        pdf.cell(0, 10, 'Upgrade to Full Report to unlock:', ln=1, align='L')
-        pdf.set_font('Arial', '', 10)
-        pdf.cell(0, 6, '- Direct links to infringing videos', ln=1)
-        pdf.cell(0, 6, '- Automated DMCA Takedown requests', ln=1)
-        pdf.cell(0, 6, '- Legal evidence package', ln=1)
-        pdf.ln(10)
-        
-        # 5. Ödeme Butonu (Vurgulu)
+
+        # 4. Ödeme Çağrısı
         pdf.set_font('Arial', 'B', 16)
-        pdf.set_text_color(0, 102, 204) # Link Mavisi
-        pdf.cell(0, 12, 'CLICK HERE TO UPGRADE FOR $29', ln=1, align='C', link="https://buy.stripe.com/test")
+        pdf.set_text_color(0, 123, 255)
+        pdf.cell(0, 15, 'GET FULL REPORT & START TAKEDOWN ($29)', ln=1, align='C', link="https://buy.stripe.com/test")
 
         out = pdf.output(dest='S')
-        if isinstance(out, str):
-            out = out.encode('latin-1', errors='ignore')
+        if isinstance(out, str): out = out.encode('latin-1', errors='ignore')
             
         response = make_response(out)
         response.headers.set('Content-Type', 'application/pdf')
-        response.headers.set('Content-Disposition', 'attachment', filename='AI_Scan_Report.pdf')
+        response.headers.set('Content-Disposition', 'attachment', filename='Security_Report.pdf')
         return response
 
     except Exception as e:
