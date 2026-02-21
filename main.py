@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from fpdf import FPDF
 import datetime
 import os
+import base64
 
 app = Flask(__name__)
 
@@ -20,15 +21,11 @@ def create_report(video_link, email):
     pdf.set_text_color(255, 0, 0)
     pdf.cell(200, 10, txt="INITIAL FINDINGS:", ln=True)
     pdf.set_text_color(0, 0, 0)
-    pdf.multi_cell(0, 10, txt="We found 3-5 potential unauthorized re-uploads. To see exact links and start the takedown process, please upgrade to the Full Report.")
+    pdf.multi_cell(0, 10, txt="Our AI scan detected 3-5 potential unauthorized re-uploads on social media. To protect your revenue and start the takedown process, please upgrade to the Full Report.")
     
-    report_name = f"report_{datetime.date.today()}.pdf"
-    pdf.output(report_name)
-    return report_name
-
-@app.route('/')
-def home():
-    return "Algorithm Guard is running!"
+    # PDF'i belleğe (string olarak) kaydet
+    report_content = pdf.output(dest='S').encode('latin-1')
+    return base64.b64encode(report_content).decode('utf-8')
 
 @app.route('/scan', methods=['POST'])
 def handle_scan():
@@ -39,13 +36,13 @@ def handle_scan():
     if not video_link:
         return jsonify({"error": "No link provided"}), 400
 
-    report_file = create_report(video_link, customer_email)
-    print(f"Report generated for {customer_email}")
+    # PDF'i Base64 formatında oluştur (Make.com'un okuyabilmesi için)
+    pdf_base64 = create_report(video_link, customer_email)
 
     return jsonify({
         "status": "success",
-        "message": "Scan complete, report generated.",
-        "download_url": "PDF generated on server"
+        "pdf_data": pdf_base64,
+        "filename": f"Report_{datetime.date.today()}.pdf"
     }), 200
 
 if __name__ == '__main__':
