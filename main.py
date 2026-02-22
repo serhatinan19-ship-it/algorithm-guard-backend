@@ -10,64 +10,72 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-# --- CONFIGURATION ---
+# --- AYARLAR ---
 MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/d5r4hdjr4xvs2henqgn3x35hi49gubqv"
+SHOPIER_URL = "https://www.shopier.com/31165415"
 
 def create_pdf(email, link):
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    # --- PDF TASARIMI (Profesyonel Görünüm) ---
-    # Başlık Alanı
-    p.setFillColor(colors.HexColor("#1a237e")) # Koyu Lacivert
+    # --- TASARIM BAŞLIYOR ---
+    # Üst Bölüm (Lacivert)
+    p.setFillColor(colors.HexColor("#1a237e"))
     p.rect(0, height - 80, width, 80, fill=1)
     
     p.setFillColor(colors.white)
     p.setFont("Helvetica-Bold", 20)
     p.drawString(50, height - 50, "ALGORITHM GUARD - FORENSIC AUDIT")
 
-    # Rapor Bilgileri
+    # Rapor Detayları
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 12)
-    p.drawString(50, height - 120, "REPORT SUMMARY")
+    p.drawString(50, height - 120, "AUDIT SUMMARY")
     
     p.setFont("Helvetica", 10)
-    p.drawString(50, height - 140, f"Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    p.drawString(50, height - 155, f"Target Email: {email}")
-    p.drawString(50, height - 170, f"Analysis Link: {link}")
+    p.drawString(50, height - 145, f"Audit ID: AG-{datetime.datetime.now().strftime('%Y%m%d%H%M')}")
+    p.drawString(50, height - 160, f"Account: {email}")
+    p.drawString(50, height - 175, f"Target: {link}")
 
-    # Analiz Sonuçları (Vurucu Bölüm)
+    # Çizgi ve Bulgular
     p.setStrokeColor(colors.lightgrey)
-    p.line(50, height - 190, 550, height - 190)
+    p.line(50, height - 195, 550, height - 195)
 
     p.setFont("Helvetica-Bold", 13)
     p.setFillColor(colors.red)
-    p.drawString(50, height - 220, "CRITICAL FINDINGS:")
+    p.drawString(50, height - 225, "CRITICAL FINDINGS:")
     
     p.setFont("Helvetica", 11)
     p.setFillColor(colors.black)
-    p.drawString(70, height - 245, "• Digital Fingerprint Match: POSITIVE (Unauthorized clones detected)")
-    p.drawString(70, height - 265, "• Metadata Leakage: Found on 3rd party video hosting platforms")
-    p.drawString(70, height - 285, "• Monetization Leak: Estimated revenue loss detected")
+    p.drawString(70, height - 250, "• Unauthorized Duplication: POSITIVE")
+    p.drawString(70, height - 270, "• AdSense Hijacking Risk: HIGH")
+    p.drawString(70, height - 290, "• Metadata Plagiarism: DETECTED")
 
-    # Uyarı Kutusu
-    p.setFillColor(colors.HexColor("#fff3e0"))
-    p.rect(50, height - 350, 500, 45, fill=1)
-    p.setFillColor(colors.HexColor("#e65100"))
-    p.setFont("Helvetica-Bold", 10)
-    p.drawCentredString(width/2, height - 330, "URGENT: Content integrity is compromised. Immediate takedown is recommended.")
-
-    # Call to Action (Satışa Yönlendirme)
-    p.setFillColor(colors.HexColor("#1a237e"))
-    p.rect(150, height - 450, 300, 40, fill=1)
-    p.setFillColor(colors.white)
-    p.setFont("Helvetica-Bold", 12)
-    p.drawCentredString(width/2, height - 435, "START FORMAL TAKEDOWN PROCESS")
+    # SHOPIER BUTONU VE ÇERÇEVESİ
+    p.setFillColor(colors.HexColor("#f8fafc"))
+    p.rect(50, height - 440, 500, 110, fill=1, stroke=1)
     
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica-Bold", 11)
+    p.drawCentredString(width/2, height - 360, "To initiate legal removal and revenue recovery:")
+
+    # Buton (Mavi)
+    p.setFillColor(colors.HexColor("#2563eb"))
+    p.roundRect(150, height - 420, 300, 45, 10, fill=1, stroke=0)
+    
+    p.setFillColor(colors.white)
+    p.setFont("Helvetica-Bold", 14)
+    p.drawCentredString(width/2, height - 402, "START TAKEDOWN NOW")
+
+    # --- KRİTİK NOKTA: LİNK TANIMLAMA ---
+    # (x1, y1, x2, y2) koordinatları butonun üzerine denk getirildi
+    p.linkURL(SHOPIER_URL, (150, height - 420, 450, height - 375), relative=0)
+
+    # Footer
     p.setFillColor(colors.grey)
     p.setFont("Helvetica-Oblique", 8)
-    p.drawCentredString(width/2, 50, "Algorithm Guard Forensic Unit - Secured by AI and Legal Expertise")
+    p.drawCentredString(width/2, 40, "Algorithm Guard - Digital Intellectual Property Unit")
 
     p.showPage()
     p.save()
@@ -81,25 +89,24 @@ def scan():
     video_link = data.get('link')
 
     if not user_email or not video_link:
-        return {"error": "Lütfen tüm alanları doldurun."}, 400
+        return {"error": "Missing info"}, 400
 
-    # 1. VERİYİ MAKE.COM'A GÖNDER (Arka planda çalışır, kullanıcıyı bekletmez)
+    # 1. MAKE.COM'A GÖNDER
     try:
         requests.post(MAKE_WEBHOOK_URL, json={
             "email": user_email,
             "link": video_link,
-            "status": "Potential Theft Detected",
-            "date": datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+            "date": datetime.datetime.now().isoformat()
         }, timeout=3)
-    except Exception as e:
-        print(f"Make.com Sync Error: {e}")
+    except:
+        pass
 
-    # 2. PDF OLUŞTUR VE İNDİRT
+    # 2. PDF OLUŞTUR
     pdf_buffer = create_pdf(user_email, video_link)
     
     response = make_response(pdf_buffer.getvalue())
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'attachment; filename=AlgorithmGuard_Report_{user_email}.pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=Report_{user_email}.pdf'
     
     return response
 
