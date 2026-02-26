@@ -8,7 +8,7 @@ import datetime
 import requests
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # --- YAPILANDIRMA (DOĞRULANMIŞ LİNK) ---
 MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/d5r4hdjr4xvs2henqgn3x35hi49gubqv"
@@ -110,3 +110,4 @@ def scan():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
